@@ -1,49 +1,32 @@
 package br.com.alura.ecomerce;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Properties;
-import java.util.UUID;
 
 public class FraudDetectorService {
+
     public static void main(String[] args) {
-        var consumer = new KafkaConsumer<String, String>(properties());
-        consumer.subscribe(Collections.singletonList("ECOMMERCE_NEW_ORDER"));                                        //consumindo a mensagem de algum topico
-        while (true) {
-            var records = consumer.poll(Duration.ofMillis(100));                                  // perguntando ao consumer se tem mensagem por 100 milisecs
-            if (!records.isEmpty()) {                                                                   //se os registros estão vazios
-                System.out.println("Encontrei" + records.count() + "registros");
-                for (var record : records) {
-                    System.out.println("______________________________________________");
-                    System.out.println("Processing new order, cheking for fraud");
-                    System.out.println(record.key());
-                    System.out.println(record.value());                     //valor da mensagem
-                    System.out.println(record.partition());                 //particao q foi enviada
-                    System.out.println(record.offset());
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    System.out.println("Order processed");
-                }
-            }
+        var fraudService = new FraudDetectorService();
+        var service = new KafkaService(FraudDetectorService.class.getSimpleName(),
+                "ECOMMERCE_NEW_ORDER",
+                fraudService::parse);
+        service.run();
+    }                                                                                           //consumindo a mensagem de algum topico
+
+    private void parse(ConsumerRecord<String, String> record) {
+        System.out.println("______________________________________________");
+        System.out.println("Processing new order, cheking for fraud");
+        System.out.println(record.key());
+        System.out.println(record.value());                     //valor da mensagem
+        System.out.println(record.partition());                 //particao q foi enviada
+        System.out.println(record.offset());                    //localização da mensagem da partição
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        System.out.println("Order processed");
     }
 
-    private static Properties properties() {
-        var properties = new Properties();
-
-        properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
-        properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());        // transformar a chave de byte pra string
-        properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, FraudDetectorService.class.getSimpleName());              //grupo que recebe todas as mensagens
-        properties.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, FraudDetectorService.class.getSimpleName() + "-" + UUID.randomUUID().toString());              //grupo que recebe todas as mensagens
-        return properties;
-    }
 
 }

@@ -12,7 +12,7 @@ public class NewOrderMain {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         var producer = new KafkaProducer<String, String>(properties());                   // Kafkaproducer recebe propriedades(produtor)
 
-        for (var i = 0; i < 100; i++) {                                                 //laço pra enviar mensagem 100 vezes
+        for (var i = 0; i < 10; i++) {                                                 //laço pra enviar mensagem 100 vezes
 
             var key = UUID.randomUUID().toString();                                 //nossa chave vai ser um id diferente de usuário
             var value = key + "8263263,1234";                                                //  a mensagem chave + (valor) que eu vou mandar
